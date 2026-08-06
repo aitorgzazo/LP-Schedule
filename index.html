@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuadrante LP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: #F6F7F5; color: #16211C; font-family: Inter, sans-serif; }
+  button { font-family: inherit; }
+  .brand-mark { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 30px; letter-spacing: -0.5px; }
+  .brand-mark span { color: #FF5D73; margin-left: 4px; }
+  .brand-mark.small { font-size: 19px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px 8px; flex-wrap: wrap; }
+  .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .me-chip { border: 2px solid #16211C; background: #16211C; color: #fff; border-radius: 99px; padding: 6px 14px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .save-dot { width: 10px; height: 10px; border-radius: 50%; background: #2AAF93; display: inline-block; }
+  .save-dot.saving { background: #FFC24B; }
+  .save-dot.error { background: #E4405A; }
+  .tabs { display: flex; gap: 6px; padding: 6px 18px 0; overflow-x: auto; }
+  .tab { border: none; background: transparent; padding: 10px 14px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; color: #7A857D; border-radius: 12px 12px 0 0; cursor: pointer; white-space: nowrap; }
+  .tab.on { background: #fff; color: #16211C; box-shadow: 0 -1px 0 #E3E7E3 inset; }
+  .content { background: #fff; margin: 0 18px 24px; border-radius: 0 16px 16px 16px; padding: 18px; box-shadow: 0 1px 3px rgba(22,33,28,0.07); }
+  .month-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 6px 0 14px; }
+  .month-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; }
+  .month-title span { color: #9AA59D; font-weight: 500; }
+  .nav-btn { border: 2px solid #E3E7E3; background: #fff; border-radius: 10px; width: 36px; height: 36px; font-size: 16px; cursor: pointer; }
+  .nav-btn:hover { border-color: #16211C; }
+  .person-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .person-chip { border: none; background: transparent; padding: 0; cursor: pointer; }
+  .avatar { border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+  .store-line { font-size: 14px; color: #5A645C; margin-bottom: 4px; }
+  .ro-tag { margin-left: 8px; background: #EDEFEC; border-radius: 99px; padding: 2px 10px; font-size: 12px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cal-dow { text-align: center; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 12px; color: #9AA59D; padding: 4px 0; }
+  .cal-cell { border: 1.5px solid #EDEFEC; border-radius: 12px; background: #fff; padding: 6px; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 5px; min-height: 64px; transition: border-color .12s; font-family: inherit; }
+  .cal-cell:hover { border-color: #16211C; }
+  .cal-cell.locked, .cal-cell.team { cursor: default; }
+  .cal-cell.locked:hover, .cal-cell.team:hover { border-color: #EDEFEC; }
+  .cal-cell.today { border-color: #FF5D73; }
+  .cal-day { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px; }
+  .cal-hours { font-size: 10px; color: #7A857D; font-variant-numeric: tabular-nums; }
+  .daybar { background: #EDEFEC; border-radius: 99px; overflow: hidden; position: relative; }
+  .daybar > i { position: absolute; top: 0; bottom: 0; border-radius: 99px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 14px; font-size: 13px; color: #5A645C; }
+  .legend-item, .team-legend-item { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 11px; height: 11px; border-radius: 4px; display: inline-block; }
+  .team-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; font-size: 13px; }
+  .muted { color: #9AA59D; }
+  .hint { font-size: 13px; color: #7A857D; margin-top: 12px; }
+  .cov-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+  .cov-pct { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 52px; line-height: 1; }
+  .cov-pct span { font-size: 26px; color: #FF5D73; }
+  .cov-sub { font-size: 14px; color: #5A645C; max-width: 340px; }
+  .cov-scroll { overflow-x: auto; }
+  .cov-table { border-collapse: separate; border-spacing: 4px; }
+  .cov-table th { font-family: 'Space Grotesk', sans-serif; font-size: 12px; color: #9AA59D; padding: 2px 0; }
+  .cov-hour { font-size: 11px; color: #7A857D; padding-right: 6px; font-variant-numeric: tabular-nums; }
+  .cov-cell { width: 34px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #16211C; }
+  .gaps { margin-top: 16px; background: #FDF3F4; border: 1.5px solid #F5D8DC; border-radius: 12px; padding: 12px 14px; font-size: 13px; }
+  .gaps.ok { background: #EFFAF6; border-color: #C6EADF; }
+  .gaps-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; margin-bottom: 6px; }
+  .gaps-line { color: #5A645C; padding: 1px 0; }
+  .pick { display: flex; align-items: center; gap: 12px; border: 2px solid #E3E7E3; background: #fff; border-radius: 16px; padding: 12px 14px; cursor: pointer; transition: border-color .12s; width: 100%; }
+  .pick:hover { border-color: #16211C; }
+  .pick-name { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 16px; }
+  .pick-store { font-size: 13px; color: #7A857D; }
+  .sheet-backdrop { position: fixed; inset: 0; background: rgba(22,33,28,0.35); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .sheet { background: #fff; border-radius: 20px 20px 0 0; padding: 18px 18px 26px; width: 100%; max-width: 520px; max-height: 80vh; overflow-y: auto; }
+  .sheet-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; margin-bottom: 12px; }
+  .sheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .shift-btn { border: none; border-radius: 14px; padding: 12px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer; }
+  .shift-btn span { font-weight: 500; font-size: 12px; opacity: .85; }
+  .sheet-sub { font-size: 13px; color: #7A857D; margin: 14px 0 8px; }
+  .sheet-starts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .start-btn { border: 1.5px solid #E3E7E3; background: #fff; border-radius: 99px; padding: 7px 12px; font-size: 13px; cursor: pointer; font-variant-numeric: tabular-nums; }
+  .start-btn:hover { border-color: #16211C; }
+  .btn-primary { border: none; background: #16211C; color: #fff; border-radius: 12px; padding: 12px 20px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 8px; }
+  .btn-ghost { border: 1.5px solid #E3E7E3; background: #fff; border-radius: 99px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+  .btn-ghost:hover { border-color: #16211C; }
+  .f-label { display: block; font-size: 12px; color: #7A857D; margin: 10px 0 4px; }
+  .f-input { width: 100%; border: 1.5px solid #E3E7E3; border-radius: 10px; padding: 9px 12px; font-size: 14px; font-family: Inter, sans-serif; }
+  .f-input:focus { outline: 2px solid #16211C; outline-offset: 1px; }
+  .settings-card { border: 1.5px solid #EDEFEC; border-radius: 14px; padding: 12px 14px 14px; margin-top: 14px; }
+  .settings-card-head { display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; }
+  .settings-actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+  .ro-banner, .err-banner { background: #FFF6E8; border: 1.5px solid #F1DEBB; border-radius: 12px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; }
+  .err-banner { background: #FDF3F4; border-color: #F5D8DC; }
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); background: #16211C; color: #fff; border-radius: 99px; padding: 10px 18px; font-size: 13px; z-index: 60; }
+  .login-wrap { max-width: 420px; margin: 0 auto; padding: 48px 20px; }
+  .login-sub { color: #5A645C; font-size: 15px; margin: 10px 0 28px; }
+  .login-list { display: flex; flex-direction: column; gap: 10px; }
+  .print-only { display: none; }
+  @media print {
+    .no-print, .toast { display: none !important; }
+    .print-only { display: block; padding: 20px; }
+    .print-only h1 { font-size: 20px; }
+    .print-only h2 { font-size: 14px; margin: 14px 0 6px; }
+    .print-only table { border-collapse: collapse; font-size: 11px; }
+    .print-only td { border-bottom: 1px solid #ddd; padding: 2px 10px 2px 0; }
+    .print-block { break-inside: avoid; }
+  }
+  @media (max-width: 560px) {
+    .content { margin: 0 8px 16px; padding: 12px 8px; }
+    .topbar { padding: 12px 12px 6px; }
+    .tabs { padding: 4px 12px 0; }
+    .cal-grid { gap: 3px; }
+    .cal-cell { padding: 4px; min-height: 56px; border-radius: 9px; }
+    .cal-hours { font-size: 9px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   CONFIGURACIÓN DE FIREBASE — ya rellenada con el proyecto lp-schedule.
+   Si algún día cambias de proyecto, sustituye estos valores por los
+   de Consola de Firebase → Configuración del proyecto → Tus apps → Web.
+   ═══════════════════════════════════════════════════════════════════ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDyK2xiLByLTxqR8Mfl_v9kwmtZEu-gFV8",
+  authDomain: "lp-schedule.firebaseapp.com",
+  databaseURL: "https://lp-schedule-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "lp-schedule",
+  storageBucket: "lp-schedule.firebasestorage.app",
+  messagingSenderId: "698909961621",
+  appId: "1:698909961621:web:473d27e4d06fe726fada9c"
+};
+/* ═══════════════════════════════════════════════════════════════════ */
+
+const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const DIAS = ["L","M","X","J","V","S","D"];
+const DIAS_LARGO = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+const SHIFT_H = 8;
+const PERSON_COLORS = ["#FF5D73","#4B9BFF","#FFAA3B","#9B6BFF"];
+const TIPOS = {
+  M: { label: "Mañana", color: "#FFC24B", ink: "#5C4300" },
+  T: { label: "Tarde",  color: "#6C63FF", ink: "#FFFFFF" },
+  C: { label: "Personalizado", color: "#39C0A8", ink: "#00382E" },
+  L: { label: "Libre",  color: "#E3E7E3", ink: "#5A645C" },
+  V: { label: "Vacaciones", color: "#8FD98F", ink: "#1D4D1D" },
+};
+const DEFAULT_CONFIG = {
+  regional: "Regional LP",
+  people: [
+    { id: "p1", name: "Aitor", store: "Alfafar 1004", open: 10, close: 22 },
+    { id: "p2", name: "Advisor 2", store: "Tienda 2", open: 10, close: 22 },
+    { id: "p3", name: "Advisor 3", store: "Tienda 3", open: 10, close: 22 },
+    { id: "p4", name: "Advisor 4", store: "Tienda 4", open: 10, close: 22 },
+  ],
+};
+
+/* ── estado ── */
+const now = new Date();
+const S = {
+  config: null,
+  shifts: {},          // { personId: { "2026-08-05": {t,s?} } }
+  me: null,            // id | "regional"
+  tab: "mes",
+  viewPerson: null,
+  ym: { y: now.getFullYear(), m: now.getMonth() },
+  editDay: null,
+  saveState: "ok",     // ok | saving | error
+  demo: false,
+  errText: null,
+  loaded: false,
+};
+
+/* ── Firebase o modo demo ── */
+let db = null;
+const isDemo = () => JSON.stringify(FIREBASE_CONFIG).includes("PEGA_AQUI");
+
+function initData() {
+  if (isDemo()) {
+    S.demo = true;
+    S.config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    S.loaded = true;
+    render();
+    return;
+  }
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+  } catch (e) {
+    S.errText = "No se pudo iniciar Firebase: " + (e.message || e);
+    S.config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    S.loaded = true;
+    render();
+    return;
+  }
+  db.ref("config").on("value", (snap) => {
+    const v = snap.val();
+    S.config = v || JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    if (!v) db.ref("config").set(S.config).catch(() => {});
+    S.loaded = true;
+    render();
+  }, (err) => {
+    S.errText = "Sin acceso a la base de datos (revisa las reglas): " + (err.message || err);
+    S.config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    S.loaded = true;
+    render();
+  });
+  db.ref("shifts").on("value", (snap) => {
+    S.shifts = snap.val() || {};
+    render();
+  });
+}
+
+function setSave(state) { S.saveState = state; const el = document.getElementById("savedot"); if (el) el.className = "save-dot " + state; }
+
+function writeShift(pid, date, entry) {
+  // actualización local inmediata
+  if (!S.shifts[pid]) S.shifts[pid] = {};
+  if (entry) S.shifts[pid][date] = entry; else delete S.shifts[pid][date];
+  render();
+  if (S.demo || !db) return;
+  setSave("saving");
+  const ref = db.ref("shifts/" + pid + "/" + date);
+  const p = entry ? ref.set(entry) : ref.remove();
+  p.then(() => setSave("ok")).catch((e) => { setSave("error"); S.errText = "Error al guardar: " + (e.message || e); render(); });
+}
+
+function writeConfig(cfg) {
+  S.config = cfg;
+  render();
+  if (S.demo || !db) { toast("Guardado (modo demo, se pierde al recargar)"); return; }
+  setSave("saving");
+  db.ref("config").set(cfg)
+    .then(() => { setSave("ok"); toast("Ajustes guardados"); })
+    .catch((e) => { setSave("error"); S.errText = "Error al guardar ajustes: " + (e.message || e); render(); });
+}
+
+/* ── utilidades ── */
+const pad = (n) => String(n).padStart(2, "0");
+const hLabel = (h) => { const hh = ((h % 24) + 24) % 24; return pad(Math.floor(hh)) + ":" + (h % 1 ? "30" : "00"); };
+const daysInMonth = (y, m) => new Date(y, m + 1, 0).getDate();
+const firstWeekday = (y, m) => (new Date(y, m, 1).getDay() + 6) % 7;
+const mkDate = (d) => S.ym.y + "-" + pad(S.ym.m + 1) + "-" + pad(d);
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function people() {
+  return (S.config?.people || []).map((p, i) => ({ ...p, color: PERSON_COLORS[i % 4] }));
+}
+function shiftRange(entry, person) {
+  if (!entry) return null;
+  if (entry.t === "M") return [person.open, Math.min(person.open + SHIFT_H, person.close)];
+  if (entry.t === "T") return [Math.max(person.close - SHIFT_H, person.open), person.close];
+  if (entry.t === "C") { const s = entry.s ?? person.open; return [s, s + SHIFT_H]; }
+  return null;
+}
+const canEdit = (pid) => S.me === "regional" || S.me === pid;
+
+function avatar(name, color, size, active) {
+  const initials = name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  const st = active
+    ? `background:${color};color:#fff;border:2px solid ${color}`
+    : `background:#fff;color:${color};border:2px solid ${color}`;
+  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.38)}px;${st}">${esc(initials)}</div>`;
+}
+
+function dayBar(entry, person, height) {
+  const span = person.close - person.open;
+  const tipo = entry ? TIPOS[entry.t] : null;
+  let inner = "";
+  if (entry && (entry.t === "L" || entry.t === "V")) {
+    inner = `<i style="left:0;width:100%;background:${tipo.color};opacity:${entry.t === "L" ? 0.9 : 1}"></i>`;
+  } else {
+    const r = shiftRange(entry, person);
+    if (r) {
+      const a = Math.max(r[0], person.open), b = Math.min(r[1], person.close);
+      if (b > a) inner = `<i style="left:${((a - person.open) / span) * 100}%;width:${((b - a) / span) * 100}%;background:${tipo.color}"></i>`;
+    }
+  }
+  return `<div class="daybar" style="height:${height}px">${inner}</div>`;
+}
+
+function legendHtml(keys) {
+  return `<div class="legend">` + keys.map((k) =>
+    `<div class="legend-item"><span class="dot" style="background:${TIPOS[k].color}"></span>${TIPOS[k].label}</div>`
+  ).join("") + `</div>`;
+}
+
+function toast(msg) {
+  const t = document.createElement("div");
+  t.className = "toast"; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
+/* ── acciones globales (para onclick) ── */
+window.A = {
+  pick(id) { S.me = id; S.viewPerson = id === "regional" ? people()[0].id : id; render(); },
+  logout() { S.me = null; S.tab = "mes"; render(); },
+  tab(t) { S.tab = t; render(); },
+  view(pid) { S.viewPerson = pid; render(); },
+  nav(dir) {
+    let { y, m } = S.ym;
+    m += dir;
+    if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; }
+    S.ym = { y, m }; render();
+  },
+  openDay(pid, d) { if (canEdit(pid)) { S.editDay = { pid, d }; render(); } },
+  closeSheet() { S.editDay = null; render(); },
+  setShift(pid, d, t, s) {
+    const entry = t === "X" ? null : (t === "C" ? { t: "C", s: Number(s) } : { t });
+    writeShift(pid, mkDate(d), entry);
+    S.editDay = null; render();
+  },
+  saveSettings() {
+    const cfg = { regional: document.getElementById("f-regional").value.trim() || "Regional LP", people: [] };
+    for (let i = 0; i < 4; i++) {
+      cfg.people.push({
+        id: "p" + (i + 1),
+        name: document.getElementById("f-name-" + i).value.trim() || "Advisor " + (i + 1),
+        store: document.getElementById("f-store-" + i).value.trim() || "Tienda " + (i + 1),
+        open: Math.max(0, Math.min(23, Number(document.getElementById("f-open-" + i).value) || 10)),
+        close: Math.max(1, Math.min(24, Number(document.getElementById("f-close-" + i).value) || 22)),
+      });
+    }
+    writeConfig(cfg);
+  },
+  copy() {
+    const ps = people();
+    let out = "CUADRANTE LP — " + MESES[S.ym.m].toUpperCase() + " " + S.ym.y + "\n";
+    for (const p of ps) {
+      out += "\n" + p.name + " · " + p.store + " (" + hLabel(p.open) + "–" + hLabel(p.close) + ")\n";
+      const entries = S.shifts[p.id] || {};
+      for (let d = 1; d <= daysInMonth(S.ym.y, S.ym.m); d++) {
+        const e = entries[mkDate(d)];
+        if (!e) continue;
+        const r = shiftRange(e, p);
+        const wd = DIAS[(new Date(S.ym.y, S.ym.m, d).getDay() + 6) % 7];
+        out += "  " + pad(d) + " " + wd + " — " + TIPOS[e.t].label + (r ? " " + hLabel(r[0]) + "–" + hLabel(r[1]) : "") + "\n";
+      }
+    }
+    navigator.clipboard?.writeText(out).then(
+      () => toast("Resumen copiado"),
+      () => { fallbackCopy(out); }
+    ) || fallbackCopy(out);
+  },
+  print() { window.print(); },
+};
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text; document.body.appendChild(ta); ta.select();
+  try { document.execCommand("copy"); toast("Resumen copiado"); } catch (e) { toast("No se pudo copiar"); }
+  ta.remove();
+}
+
+/* ── vistas ── */
+function loginView() {
+  const ps = people();
+  return `<div class="login-wrap">
+    <div class="brand-mark">CUADRANTE<span>LP</span></div>
+    <p class="login-sub">El cuadrante es compartido: lo que apuntes lo ve todo el equipo. ¿Quién eres?</p>
+    <div class="login-list">
+      ${ps.map((p) => `
+        <button class="pick" onclick="A.pick('${p.id}')">
+          ${avatar(p.name, p.color, 34, true)}
+          <div style="text-align:left">
+            <div class="pick-name">${esc(p.name)}</div>
+            <div class="pick-store">${esc(p.store)} · ${hLabel(p.open)}–${hLabel(p.close)}</div>
+          </div>
+        </button>`).join("")}
+      <button class="pick" onclick="A.pick('regional')">
+        ${avatar(S.config.regional, "#16211C", 34, true)}
+        <div style="text-align:left">
+          <div class="pick-name">${esc(S.config.regional)}</div>
+          <div class="pick-store">Puede editar todos los cuadrantes</div>
+        </div>
+      </button>
+    </div>
+  </div>`;
+}
+
+function monthNav() {
+  return `<div class="month-nav">
+    <button class="nav-btn" onclick="A.nav(-1)">←</button>
+    <div class="month-title">${MESES[S.ym.m]} <span>${S.ym.y}</span></div>
+    <button class="nav-btn" onclick="A.nav(1)">→</button>
+  </div>`;
+}
+
+function personRow(activeId) {
+  return `<div class="person-row">` + people().map((p) =>
+    `<button class="person-chip" onclick="A.view('${p.id}')" title="${esc(p.store)}">${avatar(p.name, p.color, 38, p.id === activeId)}</button>`
+  ).join("") + `</div>`;
+}
+
+function calCells(renderCell) {
+  const dim = daysInMonth(S.ym.y, S.ym.m);
+  const fw = firstWeekday(S.ym.y, S.ym.m);
+  let html = DIAS.map((d) => `<div class="cal-dow">${d}</div>`).join("");
+  for (let i = 0; i < fw; i++) html += "<div></div>";
+  for (let d = 1; d <= dim; d++) html += renderCell(d);
+  return `<div class="cal-grid">${html}</div>`;
+}
+
+function mesView() {
+  const p = people().find((x) => x.id === S.viewPerson) || people()[0];
+  const entries = S.shifts[p.id] || {};
+  const editable = canEdit(p.id);
+  const hoy = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+  return personRow(p.id)
+    + `<div class="store-line"><strong>${esc(p.name)}</strong> · ${esc(p.store)} · abre ${hLabel(p.open)}–${hLabel(p.close)}${editable ? "" : '<span class="ro-tag">solo lectura</span>'}</div>`
+    + monthNav()
+    + calCells((d) => {
+      const date = mkDate(d);
+      const entry = entries[date];
+      const r = shiftRange(entry, p);
+      const cls = "cal-cell" + (date === hoy ? " today" : "") + (editable ? "" : " locked");
+      const sub = r ? hLabel(r[0]) + "–" + hLabel(r[1]) : entry ? TIPOS[entry.t].label : "—";
+      return `<button class="${cls}" onclick="A.openDay('${p.id}',${d})">
+        <div class="cal-day">${d}</div>${dayBar(entry, p, 6)}<div class="cal-hours">${sub}</div>
+      </button>`;
+    })
+    + legendHtml(["M", "T", "C", "L", "V"]);
+}
+
+function equipoView() {
+  const ps = people();
+  return monthNav()
+    + `<div class="team-legend">` + ps.map((p) =>
+        `<div class="team-legend-item"><span class="dot" style="background:${p.color}"></span>${esc(p.name)} <span class="muted">· ${esc(p.store)}</span></div>`
+      ).join("") + `</div>`
+    + calCells((d) => {
+      const date = mkDate(d);
+      return `<div class="cal-cell team"><div class="cal-day">${d}</div>
+        <div style="display:flex;flex-direction:column;gap:3px">
+          ${ps.map((p) => dayBar((S.shifts[p.id] || {})[date], p, 5)).join("")}
+        </div></div>`;
+    })
+    + `<p class="hint">Cada día muestra las cuatro barras en el orden de la leyenda. La franja coloreada es el turno dentro del horario de su tienda.</p>`
+    + legendHtml(["M", "T", "C", "L", "V"]);
+}
+
+function coberturaView() {
+  const p = people().find((x) => x.id === S.viewPerson) || people()[0];
+  const entries = S.shifts[p.id] || {};
+  const dim = daysInMonth(S.ym.y, S.ym.m);
+  const hours = []; for (let h = p.open; h < p.close; h++) hours.push(h);
+  const count = Array.from({ length: 7 }, () => ({}));
+  for (let d = 1; d <= dim; d++) {
+    const wd = (new Date(S.ym.y, S.ym.m, d).getDay() + 6) % 7;
+    const r = shiftRange(entries[mkDate(d)], p);
+    if (r) for (let h = Math.floor(Math.max(r[0], p.open)); h < Math.min(r[1], p.close); h++) count[wd][h] = (count[wd][h] || 0) + 1;
+  }
+  let covered = 0, total = 0; const gaps = [];
+  for (let wd = 0; wd < 7; wd++) for (const h of hours) { total++; if (count[wd][h]) covered++; else gaps.push({ wd, h }); }
+  const pct = total ? Math.round((covered / total) * 100) : 0;
+  const gapText = [];
+  for (let wd = 0; wd < 7; wd++) {
+    const hs = gaps.filter((g) => g.wd === wd).map((g) => g.h).sort((a, b) => a - b);
+    if (!hs.length) continue;
+    const runs = []; let s = hs[0], prev = hs[0];
+    for (const h of hs.slice(1)) { if (h === prev + 1) { prev = h; continue; } runs.push([s, prev + 1]); s = h; prev = h; }
+    runs.push([s, prev + 1]);
+    gapText.push(DIAS_LARGO[wd] + ": " + runs.map(([a, b]) => hLabel(a) + "–" + hLabel(b)).join(", "));
+  }
+  const rows = hours.map((h) => `<tr><td class="cov-hour">${hLabel(h)}</td>` +
+    DIAS.map((_, wd) => {
+      const c = count[wd][h] || 0;
+      const bg = c === 0 ? "#F3E9E9" : c === 1 ? "#CDEDE4" : c === 2 ? "#7ED6BF" : "#2AAF93";
+      return `<td><div class="cov-cell" style="background:${bg}">${c === 0 ? "·" : c}</div></td>`;
+    }).join("") + `</tr>`).join("");
+  return personRow(p.id) + monthNav()
+    + `<div class="cov-head"><div class="cov-pct">${pct}<span>%</span></div>
+       <div class="cov-sub">de las franjas <strong>día de la semana × hora</strong> de ${esc(p.store)} cubiertas al menos una vez en ${MESES[S.ym.m].toLowerCase()}</div></div>
+       <div class="cov-scroll"><table class="cov-table"><thead><tr><th></th>${DIAS.map((d) => `<th>${d}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`
+    + (gapText.length
+        ? `<div class="gaps"><div class="gaps-title">Franjas sin cubrir este mes</div>${gapText.map((t) => `<div class="gaps-line">${esc(t)}</div>`).join("")}</div>`
+        : `<div class="gaps ok">Todas las franjas de la semana quedan cubiertas este mes. 🎯</div>`);
+}
+
+function ajustesView() {
+  const locked = S.me !== "regional";
+  const dis = locked ? "disabled" : "";
+  return `<div style="max-width:520px">
+    ${locked ? `<div class="ro-banner">Solo ${esc(S.config.regional)} puede cambiar los ajustes. Puedes verlos, pero no guardarlos.</div>` : ""}
+    <label class="f-label" for="f-regional">Nombre del rol regional</label>
+    <input class="f-input" id="f-regional" value="${esc(S.config.regional)}" ${dis}>
+    ${S.config.people.map((p, i) => `
+      <div class="settings-card">
+        <div class="settings-card-head"><span class="dot" style="background:${PERSON_COLORS[i % 4]}"></span> Advisor ${i + 1}</div>
+        <label class="f-label" for="f-name-${i}">Nombre</label>
+        <input class="f-input" id="f-name-${i}" value="${esc(p.name)}" ${dis}>
+        <label class="f-label" for="f-store-${i}">Tienda</label>
+        <input class="f-input" id="f-store-${i}" value="${esc(p.store)}" ${dis}>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><label class="f-label" for="f-open-${i}">Apertura</label>
+            <input class="f-input" id="f-open-${i}" type="number" min="0" max="23" value="${p.open}" ${dis}></div>
+          <div style="flex:1"><label class="f-label" for="f-close-${i}">Cierre</label>
+            <input class="f-input" id="f-close-${i}" type="number" min="1" max="24" value="${p.close}" ${dis}></div>
+        </div>
+      </div>`).join("")}
+    ${locked ? "" : `<button class="btn-primary" onclick="A.saveSettings()">Guardar ajustes</button>`}
+    <div class="settings-actions">
+      <button class="btn-ghost" onclick="A.logout()">Cambiar de usuario</button>
+    </div>
+  </div>`;
+}
+
+function sheetView() {
+  if (!S.editDay) return "";
+  const p = people().find((x) => x.id === S.editDay.pid);
+  const d = S.editDay.d;
+  const current = (S.shifts[p.id] || {})[mkDate(d)];
+  const wd = DIAS_LARGO[(new Date(S.ym.y, S.ym.m, d).getDay() + 6) % 7];
+  const starts = []; for (let h = p.open - 2; h <= p.close - SHIFT_H + 2; h++) starts.push(h);
+  return `<div class="sheet-backdrop" onclick="A.closeSheet()">
+    <div class="sheet" onclick="event.stopPropagation()">
+      <div class="sheet-title">${wd} ${d} · ${esc(p.name)}</div>
+      <div class="sheet-grid">
+        <button class="shift-btn" style="background:${TIPOS.M.color};color:${TIPOS.M.ink}" onclick="A.setShift('${p.id}',${d},'M')">Mañana<br><span>${hLabel(p.open)}–${hLabel(Math.min(p.open + 8, p.close))}</span></button>
+        <button class="shift-btn" style="background:${TIPOS.T.color};color:${TIPOS.T.ink}" onclick="A.setShift('${p.id}',${d},'T')">Tarde<br><span>${hLabel(Math.max(p.close - 8, p.open))}–${hLabel(p.close)}</span></button>
+        <button class="shift-btn" style="background:${TIPOS.L.color};color:${TIPOS.L.ink}" onclick="A.setShift('${p.id}',${d},'L')">Libre</button>
+        <button class="shift-btn" style="background:${TIPOS.V.color};color:${TIPOS.V.ink}" onclick="A.setShift('${p.id}',${d},'V')">Vacaciones</button>
+      </div>
+      <div class="sheet-sub">Turno personalizado (8 h) — elige hora de inicio (hasta 2 h antes de abrir o 2 h más tarde de lo habitual)</div>
+      <div class="sheet-starts">
+        ${starts.map((h) => {
+          const sel = current?.t === "C" && current.s === h ? `style="background:${TIPOS.C.color};color:${TIPOS.C.ink};border-color:${TIPOS.C.color}"` : "";
+          return `<button class="start-btn" ${sel} onclick="A.setShift('${p.id}',${d},'C',${h})">${hLabel(h)}</button>`;
+        }).join("")}
+      </div>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        ${current ? `<button class="btn-ghost" onclick="A.setShift('${p.id}',${d},'X')">Quitar turno</button>` : ""}
+        <button class="btn-ghost" onclick="A.closeSheet()">Cerrar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function printView() {
+  const ps = people();
+  const dim = daysInMonth(S.ym.y, S.ym.m);
+  return `<div class="print-only"><h1>Cuadrante LP — ${MESES[S.ym.m]} ${S.ym.y}</h1>` +
+    ps.map((p) => {
+      const entries = S.shifts[p.id] || {};
+      let rows = "";
+      for (let d = 1; d <= dim; d++) {
+        const e = entries[mkDate(d)];
+        const r = shiftRange(e, p);
+        rows += `<tr><td>${pad(d)} ${DIAS[(new Date(S.ym.y, S.ym.m, d).getDay() + 6) % 7]}</td><td>${e ? TIPOS[e.t].label : "—"}</td><td>${r ? hLabel(r[0]) + "–" + hLabel(r[1]) : ""}</td></tr>`;
+      }
+      return `<div class="print-block"><h2>${esc(p.name)} · ${esc(p.store)}</h2><table><tbody>${rows}</tbody></table></div>`;
+    }).join("") + `</div>`;
+}
+
+/* ── render principal ── */
+function render() {
+  const app = document.getElementById("app");
+  if (!S.loaded || !S.config) {
+    app.innerHTML = `<div style="padding:60px;text-align:center;color:#7A857D">Cargando cuadrante…</div>`;
+    return;
+  }
+  if (!S.me) { app.innerHTML = loginView(); return; }
+
+  const meName = S.me === "regional" ? S.config.regional : (people().find((p) => p.id === S.me)?.name || "");
+  const banners =
+    (S.errText ? `<div class="err-banner no-print"><div style="font-family:monospace;font-size:12px;margin:2px 0">${esc(S.errText)}</div></div>` : "") +
+    (S.demo ? `<div class="ro-banner no-print">Modo demo: aún no has pegado la configuración de Firebase en el archivo, así que los datos se pierden al recargar. Sigue las instrucciones de instalación para activar el guardado compartido.</div>` : "");
+
+  let body = "";
+  if (S.tab === "mes") body = mesView();
+  else if (S.tab === "equipo") body = equipoView();
+  else if (S.tab === "cobertura") body = coberturaView();
+  else body = ajustesView();
+
+  app.innerHTML = `
+    <header class="topbar no-print">
+      <div class="brand-mark small">CUADRANTE<span>LP</span></div>
+      <div class="topbar-right">
+        <span id="savedot" class="save-dot ${S.saveState}"></span>
+        <button class="btn-ghost" onclick="A.copy()">Copiar resumen</button>
+        <button class="btn-ghost" onclick="A.print()">Imprimir</button>
+        <button class="me-chip" onclick="A.logout()">${esc(meName)}</button>
+      </div>
+    </header>
+    <nav class="tabs no-print">
+      ${[["mes", "Mi mes"], ["equipo", "Equipo"], ["cobertura", "Cobertura"], ["ajustes", "Ajustes"]]
+        .map(([k, l]) => `<button class="tab ${S.tab === k ? "on" : ""}" onclick="A.tab('${k}')">${l}</button>`).join("")}
+    </nav>
+    <main class="content no-print">${banners}${body}</main>
+    ${sheetView()}
+    ${printView()}
+  `;
+}
+
+initData();
+render();
+</script>
+</body>
+</html>
